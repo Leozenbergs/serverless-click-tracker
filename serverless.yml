@@ -10,7 +10,6 @@ provider:
   name: aws
   runtime: nodejs18.x
   region: us-east-1
-  stage: dev
   profile: default
   httpApi:
     cors: true
@@ -25,27 +24,25 @@ provider:
             - dynamodb:PutItem
             - dynamodb:UpdateItem
             - dynamodb:DeleteItem
-          # Resource:
-            # - Fn::GetAtt: [ Notes, Arn ]
-          Resource: "arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.CLICKS}"
+          Resource: "arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TABLE}"
   environment:
-    CLICKS: ${self:custom.tableName}
+    TABLE: ${self:custom.tableName}
 
 functions:
   registerClick:
-    handler: index.register
+    handler: src/register.handler
     events:
       - httpApi:
           path: /register
           method: POST
   getClicks:
-    handler: index.list
+    handler: src/list.handler
     events:
       - httpApi:
           path: /clicks
           method: GET
   serve:
-    handler: index.serve
+    handler: src/serve.handler
     events:
       - httpApi:
           path: /
@@ -55,7 +52,6 @@ functions:
 resources:
   Resources:
     Clicks:
-      DeletionPolicy: Retain
       Type: AWS::DynamoDB::Table
       Properties:
         BillingMode: PAY_PER_REQUEST
